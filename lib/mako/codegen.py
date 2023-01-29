@@ -1,5 +1,5 @@
 # mako/codegen.py
-# Copyright 2006-2021 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -1251,8 +1251,13 @@ class _Identifiers:
 
 
 _FOR_LOOP = re.compile(
-    r"^for\s+((?:\(?)\s*[A-Za-z_][A-Za-z_0-9]*"
-    r"(?:\s*,\s*(?:[A-Za-z_][A-Za-z0-9_]*),??)*\s*(?:\)?))\s+in\s+(.*):"
+    r"^for\s+((?:\(?)\s*"
+    r"(?:\(?)\s*[A-Za-z_][A-Za-z_0-9]*"
+    r"(?:\s*,\s*(?:[A-Za-z_][A-Za-z_0-9]*),??)*\s*(?:\)?)"
+    r"(?:\s*,\s*(?:"
+    r"(?:\(?)\s*[A-Za-z_][A-Za-z_0-9]*"
+    r"(?:\s*,\s*(?:[A-Za-z_][A-Za-z_0-9]*),??)*\s*(?:\)?)"
+    r"),??)*\s*(?:\)?))\s+in\s+(.*):"
 )
 
 
