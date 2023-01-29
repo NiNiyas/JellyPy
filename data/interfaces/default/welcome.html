@@ -1,0 +1,491 @@
+﻿<%
+    import jellypy
+    from jellypy import common, helpers
+%>
+
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JellyPy - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="${http_root}css/bootstrap3/bootstrap.min.css" rel="stylesheet">
+    <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.6.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.6.0">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.6.0">
+
+    <!-- ICONS -->
+    <!-- Android -->
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.9.0" crossorigin="use-credentials">
+    <meta name="theme-color" content="#282a2d">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.6.0">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.6.0" color="#282a2d">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <!-- Microsoft -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.6.0">
+</head>
+
+<body>
+<div class="container-fluid">
+    % if jellypy.CONFIG.CHECK_DOCKER_MOUNT and jellypy.DOCKER and not jellypy.DOCKER_MOUNT:
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger docker-mount" role="alert" style="width: 700px; z-index: 9999">
+                The <span class="inline-pre">/config</span> volume mount was not configured properly for the Docker container.
+                All data may be cleared when the container is recreated or updated.
+            </div>
+        </div>
+    </div>
+    % endif
+    <div class="row">
+        <div class="wizard" id="setup-wizard" data-title="JellyPy Setup Wizard">
+            <form>
+                <div class="wizard-card" data-cardname="card1">
+                    <div style="float: right;">
+                        <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="Tautulli">
+                    </div>
+                    <h3 style="line-height: 50px;">Welcome!</h3>
+                    <div class="wizard-input-section">
+                        <p class="welcome-message">
+                            Thanks for taking the time to try out JellyPy. Hope you find it useful.
+                        </p>
+                        <p class="welcome-message">
+                            JellyPy requires a permanent internet connection to ensure a reliable experience.
+                        </p>
+                        <p class="welcome-message">
+                            This wizard will help you get set up, to continue press Next.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="wizard-card" data-cardname="card2">
+                    <h3>Authentication</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Please setup an admin username and password for JellyPy.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_username">HTTP Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="" size="30">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_password">HTTP Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <div class="input-group">
+                                    <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="" size="30" autocomplete="new-password">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="authentication_valid" data-validate="validateAuthentication" value="">
+                    <span style="display: none;" id="authentication-status"></span>
+                </div>
+
+                <div class="wizard-card" data-cardname="card3">
+                    <h3>Jellyfin Server</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Enter your Jellyfin Server IP address or hostname.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+
+                        <div class="wizard-input-section">
+                            <label for="jellyfin_ip">Jellyfin IP Address or Hostname</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control auth-settings" id="jellyfin_ip" name="jellyfin_ip" value="${config['jellyfin_ip']}" size="30">
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="jellyfin_port">Jellyfin Port</label>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control jellyfin-settings" name="jellyfin_port" id="jellyfin_port" placeholder="8096" value="${config['jellyfin_port']}" required>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="jellyfin_ssl_checkbox" class="checkbox-toggle jellyfin-settings" data-id="jellyfin_ssl" value="1" ${helpers.checked(config['jellyfin_ssl'])}> Use HTTPS
+                                        <input type="hidden" id="jellyfin_ssl" name="jellyfin_ssl" value="${config['jellyfin_ssl']}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="jellyfin_valid" data-validate="validateJellyfinip" value="">
+                    <a class="btn btn-dark" id="verify-jellyfin-server" href="#" role="button">Verify</a>
+                    <span style="margin-left: 10px; display: none;" id="jellyfin-verify-status"></span>
+                </div>
+
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Jellyfin Auth</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Login using your Jellyfin credentials.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="jellyfin_username">Jellyfin Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control jellyfin-auth-settings" id="jellyfin_username" name="jellyfin_username" value="${config['jellyfin_username']}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="jellyfin_password">Jellyfin Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <div class="input-group">
+                                    <input type="password" class="form-control jellyfin-auth-settings" id="jellyfin_password" name="jellyfin_password" value="${config['jellyfin_password']}" required>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="jellyfin_auth" data-validate="validateJellyfinAuth" value="">
+                    <a class="btn btn-dark" id="auth-jellyfin-server" href="#" role="button">Login</a>
+                    <span style="margin-left: 10px; display: none;" id="jellyfin-auth-status"></span>
+                </div>
+
+                <div class="wizard-card" data-cardname="card5">
+                    <h3>Activity Logging</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            JellyPy will keep a history of all streaming activity on your Jellyfin server.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="logging_ignore_interval">Ignore Interval</label>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control jellyfin-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
+                            </div>
+                            <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
+                        </div>
+                        <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Additional options to disable history logging for certain libraries or users can be found by editing them
+                            on the <strong>Libraries</strong> or <strong>Users</strong> pages.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="wizard-card" data-cardname="card6">
+                    <h3>Notifications</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            JellyPy can send a wide variety of notifications to alert you of activity on your Jellyfin server.
+                        </p>
+                        <p class="help-block">
+                            To set up a notification agent, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="wizard-card" data-cardname="card7">
+                    <h3>Database Import</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            If you have an existing Tautulli, PlexWatch, or Plexivity database, you can import the data into Tautulli.
+                        </p>
+                        <p class="help-block">
+                            To import a database, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
+
+                    <!-- Required fields but hidden -->
+                    <div style="display: none;">
+                        <input type="checkbox" name="first_run" id="first_run" value="1" checked>
+                    </div>
+
+                </div>
+
+            </form>
+            <div class="wizard-success">
+                <h3>Setup Complete!</h3>
+                <br/>
+                <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
+                <br/>
+                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting <span class="countdown">5</span> seconds to ensure authentication token is registered...
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-3.6.0.min.js"></script>
+<script src="${http_root}js/bootstrap.min.js"></script>
+<script src="${http_root}js/selectize.min.js"></script>
+<script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
+<script src="${http_root}js/bootstrap-wizard.min.js"></script>
+<script>
+function validateAuthentication(el) {
+	var http_username = $('#http_username').val();
+	var http_password = $('#http_password').val();
+	var retValue = {};
+	if (http_username === '' || http_password === '') {
+		retValue.status = false;
+		retValue.msg = 'Please enter a username and password.';
+		$('#authentication-status').html('<i class="fa fa-exclamation-circle"></i> Please enter a username and password.');
+		$('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+	} else {
+		retValue.status = true;
+	}
+	return retValue;
+}
+function validateJellyfinip(el) {
+	var valid_jellyfin_ip = el.val();
+	var retValue = {};
+	if (valid_jellyfin_ip === '') {
+		retValue.status = false;
+		retValue.msg = 'Please verify your server.';
+		$('#jellyfin-verify-status').html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
+		$('#jellyfin-verify-status').fadeIn('fast').delay(2000).fadeOut('fast');
+	} else {
+		retValue.status = true;
+	}
+	return retValue;
+}
+function validateJellyfinAuth(el) {
+	var jellyfin_username = $('#jellyfin_username').val();
+	var jellyfin_password = $('#jellyfin_password').val();
+	var retValue = {};
+	if (jellyfin_username === '' || jellyfin_password === '') {
+		retValue.status = false;
+		retValue.msg = 'Please login with your Jellyfin credentials.';
+		$('#jellyfin-auth-status').html('<i class="fa fa-exclamation-circle"></i> Please login with your Jellyfin credentials.');
+		$('#jellyfin-auth-status').fadeIn('fast').delay(2000).fadeOut('fast');
+	} else {
+		retValue.status = true;
+	}
+	return retValue;
+}
+function validateIgnoreInterval(el) {
+	var valid_ignore_int = el.val();
+	var retValue = {};
+	if (!isPositiveInt(valid_ignore_int)) {
+		retValue.status = false;
+		retValue.msg = 'Please enter a valid integer.';
+		$('#ignore-int-status').html('<i class="fa fa-exclamation-circle"></i> Please enter a valid ignore interval.');
+		$('#ignore-int-status').fadeIn('fast').delay(2000).fadeOut('fast');
+	} else {
+		retValue.status = true;
+	}
+	return retValue;
+}
+function isPositiveInt(n) {
+	return $.isNumeric(n) && Math.floor(n) == n && n >= 0;
+}
+$(document).ready(function () {
+	$.fn.wizard.logging = false;
+	var options = {
+		keyboard: false,
+		contentHeight: 450,
+		contentWidth: 700,
+		backdrop: 'static',
+		buttons: { submitText: 'Finish' },
+		submitUrl: 'configUpdate'
+	};
+	var wizard = $('#setup-wizard').wizard(options);
+	wizard.show();
+	// Change button classes
+	wizard.find('.wizard-back').addClass('btn-dark');
+	wizard.on('incrementCard', function (wizard) {
+		wizard.find('.wizard-next.btn-success').removeClass('btn-success').addClass('btn-bright');
+	});
+	wizard.on('decrementCard', function (wizard) {
+		wizard.find('.wizard-next').removeClass('btn-bright').text('Next');
+	});
+	wizard.on('submit', function (wizard) {
+		// Probably should not success before we know, but hopefully validation is good enough.
+		wizard.submitSuccess();
+		$.ajax({
+			type: 'POST',
+			url: wizard.args.submitUrl,
+			data: wizard.serialize(),
+			dataType: 'json',
+			complete: function (data) {
+				$('.countdown').countdown(function () {
+					location.reload();
+				}, 5, '');
+			}
+		});
+	});
+	$('.checkbox-toggle').click(function () {
+		var configToggle = $(this).data('id');
+		if ($(this).is(':checked')) {
+			$('#' + configToggle).val(1);
+		} else {
+			$('#' + configToggle).val(0);
+		}
+	});
+	var jellyfin_verified = false;
+	$('#verify-jellyfin-server').click(function () {
+		if (!jellyfin_verified) {
+			var jellyfin_ip = $('#jellyfin_ip').val().trim();
+			var jellyfin_port = $('#jellyfin_port').val().trim();
+			var jellyfin_ssl = $('#jellyfin_ssl').val();
+			if (jellyfin_ip !== '' || jellyfin_port !== '') {
+				$('#jellyfin-verify-status').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Verifying server...');
+				$('#jellyfin-verify-status').fadeIn('fast');
+				$.ajax({
+					url: 'get_server_id',
+					cache: true,
+					async: true,
+					timeout: 5000,
+					data: {
+						hostname: jellyfin_ip,
+						port: jellyfin_port,
+						ssl: jellyfin_ssl
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						$('#jellyfin-verify-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error verifying server: ' + textStatus);
+						$('#jellyfin-verify-status').fadeIn('fast');
+					},
+					success: function (xhr, status) {
+						var result = xhr;
+						var identifier = result.identifier;
+						if (identifier) {
+							$('#jellyfin-verify-status').html('<i class="fa fa-check"></i>&nbsp; Server found!');
+							$('#jellyfin-verify-status').fadeIn('fast');
+							jellyfin_verified = true;
+							$('#jellyfin_valid').val('valid');
+						} else {
+							$('#jellyfin-verify-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error verifying server..');
+							$('#jellyfin-verify-status').fadeIn('fast');
+						}
+					}
+				});
+			} else {
+				$('#jellyfin-verify-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Please enter both fields.');
+				$('#jellyfin-verify-status').fadeIn('fast');
+			}
+		}
+	});
+	$('.jellyfin-settings').change(function () {
+		jellyfin_verified = false;
+		$('#jellyfin_valid').val('');
+		$('#jellyfin-verify-status').html('');
+	});
+	var authenticated = false;
+	$('#auth-jellyfin-server').click(function () {
+		if (!authenticated) {
+			var jellyfin_ip = $('#jellyfin_ip').val().trim();
+			var jellyfin_port = $('#jellyfin_port').val().trim();
+			var jellyfin_username = $('#jellyfin_username').val();
+			var jellyfin_password = $('#jellyfin_password').val();
+			var jellyfin_ssl = $('#jellyfin_ssl').val();
+			if (jellyfin_username !== '' || jellyfin_password !== '') {
+				$('#jellyfin-auth-status').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Logging in...');
+				$('#jellyfin-auth-status').fadeIn('fast');
+				$.ajax({
+					url: 'login_to_jellyfin',
+					cache: true,
+					async: true,
+					timeout: 5000,
+					data: {
+						username: jellyfin_username,
+						password: jellyfin_password,
+						hostname: jellyfin_ip,
+						port: jellyfin_port,
+						ssl: jellyfin_ssl
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						$('#jellyfin-auth-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error logging in...');
+						$('#jellyfin-auth-status').fadeIn('fast');
+					},
+					success: function (xhr, status) {
+						var result = xhr;
+						if (result === null) {
+							$('#jellyfin-auth-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error logging in...');
+							$('#jellyfin-auth-status').fadeIn('fast');
+						} else {
+							var user_id = result.User.Id;
+							if (user_id) {
+								$('#jellyfin-auth-status').html('<i class="fa fa-check"></i>&nbsp; Successfully logged in as ' + result.User.Name);
+								$('#jellyfin-auth-status').fadeIn('fast');
+								authenticated = true;
+								$('#jellyfin_auth').val('valid');
+								console.log('Fetching resources from server...');
+								$.ajax({
+									url: 'discover',
+									cache: true,
+									async: true,
+									timeout: 5000,
+									data: {
+										access_token: result.AccessToken,
+										hostname: jellyfin_ip,
+										port: jellyfin_port,
+										user_id: result.User.Id,
+										ssl: jellyfin_ssl,
+										session_id: result.SessionInfo.Id
+									}
+								});
+								$.ajax({
+									url: 'post_capabilities',
+									cache: true,
+									async: true,
+									timeout: 5000,
+									data: {
+										access_token: result.AccessToken,
+										hostname: jellyfin_ip,
+										port: jellyfin_port,
+										session_id: result.SessionInfo.Id,
+										ssl: jellyfin_ssl
+									}
+								});
+							} else {
+								$('#jellyfin-auth-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error logging in...');
+								$('#jellyfin-auth-status').fadeIn('fast');
+							}
+						}
+					}
+				});
+			} else {
+				$('#jellyfin-auth-status').html('<i class="fa fa-exclamation-circle"></i>&nbsp; Please enter both fields.');
+				$('#jellyfin-auth-status').fadeIn('fast');
+			}
+		}
+	});
+	$('.jellyfin-auth-settings').change(function () {
+		authenticated = false;
+		$('#jellyfin_auth').val('');
+		$('#jellyfin-auth-status').html('');
+	});
+});
+</script>
+</body>
+</html>
