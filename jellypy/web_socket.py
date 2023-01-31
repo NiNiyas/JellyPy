@@ -274,8 +274,6 @@ def process(opcode, data):
 
     event_type = event["MessageType"]
 
-    print(f"event: {event}")
-
     if not event_type:
         return False
 

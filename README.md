@@ -31,10 +31,11 @@ A python based web application for monitoring, analytics and notifications for [
 ## Install
 
 Before you install, please read this:
+
 - Docker image is not available at the moment.
 - I have only tested this on Windows 10.
 - I don't have an extensive knowledge in Python.
-- I don't remember when I forked this.
+- I don't remember exactly when I forked this.I am truly sorry for this.
 
 ### Steps
 
